@@ -22,10 +22,10 @@ Contents
 ********************************************************************************
 
 - [Introduction: What is ordination?](#intro)
-- [Principle Component Analysis: key concepts](#PCA) 
-- [Principle Component Analysis: matrix algebra](#maths) 
+- [Principal Component Analysis: key concepts](#PCA) 
+- [Principal Component Analysis: matrix algebra](#maths) 
 - [Fig wasp morphological data](#wasps)
-- [Principle Component Analysis in R](#Rcode)
+- [Principal Component Analysis in R](#Rcode)
 - [Conclusions](#conclusions)
 - [Literature Cited](#refs)
 
@@ -61,7 +61,7 @@ par(mfrow = c(1, 2), mar = c(5, 5, 1, 0.5), lwd = 2)
 hist(x = eg_mat[,1], cex.lab = 1.25, cex.axis = 1.25, col = "blue", 
      xlab = "Variable 1", main = "");
 par(mar = c(5, 5, 1, 1));
-plot(x = eg_mat[,1], y = eg_mat[,2], ylim = c(-5, 9), xlim = c(-5, 9), 
+plot(x = eg_mat[,1], y = eg_mat[,2], ylim = c(-8, 10), xlim = c(-8, 10), 
      asp = 1, cex.lab = 1.25, cex.axis = 1.25, pch = 20, cex = 4, 
      xlab = "Variable 1", ylab = "Variable 2");
 text(x = eg_mat[,1], y = eg_mat[,2], labels = 1:12, col = "white", 
@@ -79,17 +79,81 @@ lowd_n  <- rownames(eg_mat)[lowd];
 highd_n <- rownames(eg_mat)[highd];
 ```
 
-For variables 1 and 2, we can see that Sample_1 is similar to `r lowd_n` because the points are close together, and that Sample_1 is different from `r highd_n` because the points are relatively far apart. But it might be useful to see the distance between Sample_1, `r lowd_n`, and `r highd_n` while simultaneously taking into account Variables 3 and 4. More generally, it would be useful to see how distant different points are from one another given all of the dimensions in the data set. Ordination methods are a tools that try to do this, allowing us to visualse high-dimensional variation in data in a reduced number of dimensions (usually two).
+For variables 1 and 2, we can see that Sample_1 is similar to `r lowd_n` because the points are close together, and that Sample_1 is different from `r highd_n` because the points are relatively far apart. But it might be useful to see the distance between Sample_1, `r lowd_n`, and `r highd_n` while simultaneously taking into account Variables 3 and 4. More generally, it would be useful to see how distant different points are from one another given all of the dimensions in the data set. Ordination methods are a tools that try to do this, allowing us to visualise high-dimensional variation in data in a reduced number of dimensions (usually two).
+
+It is important to emphasise that ordination is a tool for exploring data and reducing dimensionality; it is not a method of hypothesis testing (i.e., not a type of [linear model](https://stirlingcodingclub.github.io/linear_modelling/index.html)). Variables in ordinations are interpreted as response variables (i.e., $y$ variables in models where $y_{i} = \beta_{0} + \beta_{1}x_{i} + \epsilon_{i}$). Ordinations visualise the total variation in these variables, but do not test relationships between dependent ($x$) and independent ($y$) variables. 
+
+These notes will focus entirely on Principal Component Analysis (PCA), which is just one of many ordination methods (perhaps the most commonly used). After reading these notes, you should have a clear [conceptual understanding](#pca) of how a PCA is constructed, and how to read one when you see one in the literature. You should also be able to [build your own PCA](#Rcode) in R using the code below. For most biologists and environmental sciences, this should be enough knowledge to allow you use PCA effectively in your own research. I have therefore kept the maths to a minimum when explaining the key ideas, putting all of the [matrix algebra](#maths) underlying PCA into a single section toward the end.  
 
 
-<a name="pca">Principle Component Analysis: key concepts</a>
+<a name="pca">Principal Component Analysis: key concepts</a>
 ================================================================================
 
+Imagine a scatterplot of data, with each variable getting its own axis representing some kind of measurement. If there are only two variables, as with the scatterplot above, then we would only need an x-axis and a y-axis to show the *exact* position of each data point in data space. If we add a third variable, then we would need a z-axis, which would be orthogonal to the x-axis and y-axis (i.e., three dimensions of data space). If we need to add a fourth variable, then we would need yet another axis along which our data points could vary, making the whole data space extremely difficult to visualise. As we add yet more variables and more axes, the position that our data points occupy in data space becomes impossible to visualise.
+
+Principal Component Analysis (PCA) can be interpreted as a rotation of data in this multi-dimensional space. The distance between data points does not change at all; the data are just moved around so that the total variation in the data set is easier to see. If this verbal explanation is confusing, that is okay; a visual example should make the idea easier to understand. To make everything easy to see, I will start with only two dimensions using Variable_1 and Variable_2 from earler (for now, just ignore the existence of Variables 3 and 4). Notice from the scatterplot that there is variation in both dimensions of the data; the variance of Variable_1 is `r round(var(eg_mat[,1]), digits = 2)`, and the variance of Variable_2 is `r round(var(eg_mat[,2]), digits = 2)`. But these variables are also clearly correlated. A sample for which Variable_1 is measured to be high is also very likely measure a high value of Variable_2 (perhaps these are measurements of animal length and width). 
+
+What if we wanted to show as much of the total variation as possible just on the x-axis? In other words, rotate the data so that the maximimum amount of variance in the full data set (i.e., in the scatterplot) falls along the x-axis, with any variation remaining being left to fall along the y-axis? To do this, we need to draw a line that cuts through our two dimensions of space in the direction where the data is most stretched out (i.e., has the highest variance); **this direction is our first Principal component, PC1**. I have drawn it below in red (left panel).
+
+```{r, fig.width = 10, fig.height = 5, echo = FALSE}
+# Plotting the actual data
+par(mfrow = c(1, 2), mar = c(5, 5, 1, 0.5), lwd = 2)
+plot(x = eg_mat[,1], y = eg_mat[,2], ylim = c(-8, 10), xlim = c(-8, 10), 
+     asp = 1, cex.lab = 1.25, cex.axis = 1.25, pch = 20, cex = 4, 
+     xlab = "Variable 1", ylab = "Variable 2");
+text(x = eg_mat[,1], y = eg_mat[,2], labels = 1:12, col = "white", 
+       cex = 0.8);
+mod <- lm(eg_mat[,2] ~ eg_mat[,1]);
+b0  <- as.numeric(mod$coefficients[1]);
+b1  <- as.numeric(mod$coefficients[2]);
+abline(a = b0, b = b1, lwd = 2, col = "red");
+points(x = eg_mat[,1], y = eg_mat[,2], pch = 20, cex = 4);
+text(x = eg_mat[,1], y = eg_mat[,2], labels = 1:12, col = "white", 
+       cex = 0.8);
+# Principal component analysis
+pc_eg <- prcomp(x = eg_mat[,1:2]);
+par(mar = c(5, 5, 1, 1));
+plot(x = pc_eg$x[,1], y = pc_eg$x[,2], ylim = c(-4, 4), xlim = c(-9, 9), 
+     asp = 1, cex.lab = 1.25, cex.axis = 1.25, pch = 20, cex = 4, 
+     xlab = "Principal Component 1", ylab = "Principal Component 2");
+text(x = pc_eg$x[,1], y = pc_eg$x[,2], labels = 1:12, col = "white", 
+       cex = 0.8);
+abline(h = 0, lwd = 2, col = "red");
+points(x = pc_eg$x[,1], y = pc_eg$x[,2], cex = 4, pch = 20);
+text(x = pc_eg$x[,1], y = pc_eg$x[,2], labels = 1:12, col = "white", 
+       cex = 0.8);
+```
+
+To build our PCA, all that we need to do is take this red line and drag it to the x-axis so that it overlaps with $y = 0$ (right panel). As we move Principal Component 1 (PC1) to the x-axis, we bring all of the data points with it, preserving their distances from PC1 and each other. Notice in the panel to the right above that the data have the same shape as they do in the panel to the left. The distances between points have not changed at all; everything has just been moved. Sample_1 and `r lowd_n` are just as close to each other as they were in the original scatterplot, and Sample_1 and `r highd_n` are just as far away. 
+
+Principal Component 1 shows that maximum amount of variation that is possible to show in one dimension while preserving these distances between points. What little variation that remains is in PC2. Since we have maximised the amount of variation on PC1, there can be no additional covariation left between the x-axis and the y-axis. If any existed, then we would need to move the line again because it would mean that more variation could be still placed along the x-axis (i.e., more variation could be squeezed out of the covariation between variables). Hence, PC1 and PC2 are, by definition, uncorrelated. Note that this does not mean that Variable 1 and Variable 2 are not correlated (they obviously are!), but PC1 and PC2 are not. This is possible because PC1 and PC2 represent a mixture of Variables 1 and 2. They no longer represent a specific variable, but a linear combination of multiple variables.
+
+This toy example with two variables can be extended to any number of variables and principal components. PCA finds the axis along which variation is maximised in any number of dimensions and makes that line PC1. In our example with two variables, this completed the PCA because we were only left with one other dimension, so all of the remaining variation had to go in PC2. But when there are more variables and dimensions, the data are rotated again around PC1 so that the maximum amount of variation is shown in PC2 after PC1 is fixed. For three variables, imagine a cloud of data points; first put a line through the most elonated part of the cloud and reorient the whole thing so that this most elongated part is the width of the cloud (x-axis), then spin it again along this axis so that the next widest part is the height of the cloud (y-axis). The same idea applies for data in even higher dimensional space; the data are rotated orthogonally around each additional Principal Component so that the amount of variation explained with each gets progressively smaller (in practice, however, all of this rotating is done simultaneously by the [matrix algebra](#maths)). 
+
+There are a few additional points to make before moving on to some real data. First, PCA is not useful if the data are entirely uncorrelated. To see why, take a look at the plot of two hypothetical (albeit ridiculous) variables in the lower left panel. The correlation between the two variables is zero, and there is no way to rotate the data to increase the amount of variation on the x-axis. The PCA on the lower right is basically the same figure, just moved so that the centre is on the origin.
 
 
-<a name="maths">Principle Component Analysis: matrix algebra</a>
-================================================================================
+```{r, fig.width = 10, fig.height = 5, echo = FALSE}
+A_comp <- NULL;
+A_dat  <- rnorm(n = 400*400, mean = 0, sd = 0.4);
+A_mat  <- matrix(data = A_dat, nrow = 400);
+A0_e   <- eigen(A_mat)$values;
+A0_r   <- Re(A0_e) + 8;
+A0_i   <- Im(A0_e) + 8;
+A0_meg <- cbind(A0_r, A0_i);
+par(mfrow = c(1, 2), mar = c(5, 5, 1, 0.5), lwd = 2);
+plot(x = A0_meg[,1], y = A0_meg[,2], ylim = c(-2, 18), xlim = c(-2, 18), 
+     asp = 1, cex.lab = 1.25, cex.axis = 1.25, pch = 20, cex = 1, 
+     xlab = "Variable 1", ylab = "Variable 2");
+A0_pc <- prcomp(x = A0_meg[,1:2]);
+par(mar = c(5, 5, 1, 1));
+plot(x = A0_pc$x[,1], y = A0_pc$x[,2], ylim = c(-10, 10), xlim = c(-10, 10), 
+     asp = 1, cex.lab = 1.25, cex.axis = 1.25, pch = 20, cex = 1, 
+     xlab = "Principal Component 1", ylab = "Principal Component 2");
+```
 
+
+Second, if two variables are completely correlated, the maths underlying PCA does not work because a [singluar matrix](https://mathworld.wolfram.com/SingularMatrix.html) is created (this is the matrix algebra equivalent of dividing by zero).
 
 
 
@@ -97,9 +161,13 @@ For variables 1 and 2, we can see that Sample_1 is similar to `r lowd_n` because
 ================================================================================
 
 
-
-<a name="Rcode">Principle Component Analysis in R</a>
+<a name="Rcode">Principal Component Analysis in R</a>
 ================================================================================
+
+
+<a name="maths">Principal Component Analysis: matrix algebra</a>
+================================================================================
+
 
 
 <a name="conclusions">Conclusions</a>
