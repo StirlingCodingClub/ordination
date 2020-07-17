@@ -1,0 +1,112 @@
+---
+title: "Introduction to ordination in R"
+author: "Brad Duthie"
+date: "22 July 2020"
+output:
+  html_document:
+    code_folding: show
+  pdf_document: default
+  word_document: default
+bibliography: refs.bib
+link-citations: yes
+linkcolor: blue
+---
+
+Contents
+================================================================================
+
+********************************************************************************
+
+**Ordination is a useful tool for visualising [multivariate data](https://en.wikipedia.org/wiki/Multivariate_analysis). These notes focus on explaining and demonstrating [principal component analysis](https://en.wikipedia.org/wiki/Principal_component_analysis) in the R programming language. Examples will use [morphological data](https://github.com/StirlingCodingClub/ordination/master/wing_loadings.csv) from [six species](http://bradduthie.github.io/DuthieEtAl2015_Appendix.pdf#page=3) of fig wasps in a community associated with the Sonoran Desert Rock Fig (*Ficus petiolaris*). These notes are also available as [PDF](https://stirlingcodingclub.github.io/ordination/index.pdf) and [DOCX](https://stirlingcodingclub.github.io/ordination/index.docx) documents.**
+
+********************************************************************************
+
+- [Introduction: What is ordination?](#intro)
+- [Principle Component Analysis: key concepts](#PCA) 
+- [Principle Component Analysis: matrix algebra](#maths) 
+- [Fig wasp morphological data](#wasps)
+- [Principle Component Analysis in R](#Rcode)
+- [Conclusions](#conclusions)
+- [Literature Cited](#refs)
+
+********************************************************************************
+
+<a name="intro">Introduction: What is ordination?</a>
+================================================================================
+
+Ordination is a method for investigating and visualising multivariate data. It allows us to look at and understand variation in a data set when there are too many dimensions to see everything at once. Imagine a data set with four different variables. I have [simulated one](https://StirlingCodingClub.github.io/simulating_data/index.html) below.
+
+```{r, echo = FALSE}
+get_dist <- function(dat, col1 = 1, col2 = 2){
+  dist <- rep(x = NA, times = dim(dat)[1]);
+  for(i in 1:dim(dat)[1]){
+    dist[i] <- sqrt()
+  }
+}
+library(knitr);
+eg_dat     <- runif(n = 48, min = -4, max = 8);
+eg_mat     <- matrix(data = eg_dat, ncol = 4);
+eg_mat[,2] <- eg_mat[,1] + runif(n = 12, min = -2, max = 2);
+rownames(eg_mat) <- c("Sample_1", "Sample_2",  "Sample_3",  "Sample_4",
+                      "Sample_5", "Sample_6",  "Sample_7",  "Sample_8",
+                      "Sample_9", "Sample_10", "Sample_11", "Sample_12");
+colnames(eg_mat) <- c("Variable_1", "Variable_2", "Variable_3", "Variable_4");
+kable(eg_mat);
+```
+
+We could look at the distribution of each variable in columns 1-4 individually using a histogram. Or we could use a scatterplot to look at two variables at the same time, with one variable plotted in one dimension (horizontal x-axis) and a second variable plotted [orthogonally](https://en.wikipedia.org/wiki/Orthogonality) (i.e., at a right angle) in another dimension (y-axis). I have done this below with a histogram for `Variable_1`, and with a scatterplot of `Variable_1` versus `Variable_2`. The numbers in the scatterplot points correspond to the sample number (i.e., rows 1-12).
+
+```{r, fig.width = 10, fig.height = 5, echo = FALSE}
+par(mfrow = c(1, 2), mar = c(5, 5, 1, 0.5), lwd = 2)
+hist(x = eg_mat[,1], cex.lab = 1.25, cex.axis = 1.25, col = "blue", 
+     xlab = "Variable 1", main = "");
+par(mar = c(5, 5, 1, 1));
+plot(x = eg_mat[,1], y = eg_mat[,2], ylim = c(-5, 9), xlim = c(-5, 9), 
+     asp = 1, cex.lab = 1.25, cex.axis = 1.25, pch = 20, cex = 4, 
+     xlab = "Variable 1", ylab = "Variable 2");
+text(x = eg_mat[,1], y = eg_mat[,2], labels = 1:12, col = "white", 
+       cex = 0.8);
+```
+
+Since we do not have four dimensions of space for plotting, we cannot put all four variables on a scatterplot that we can visualise with an axis for each variable. Hence, in the scatterplot to the right above, we are ignoring `Variable_3` and `Variable_4`. 
+
+```{r, echo = FALSE}
+eg_dis  <- dist(x = eg_mat[,1:2]);
+dis_val <- eg_dis[1:11];
+lowd    <- which(dis_val == min(dis_val)) + 1;
+highd   <- which(dis_val == max(dis_val)) + 1;
+lowd_n  <- rownames(eg_mat)[lowd];
+highd_n <- rownames(eg_mat)[highd];
+```
+
+For variables 1 and 2, we can see that Sample_1 is similar to `r lowd_n` because the points are close together, and that Sample_1 is different from `r highd_n` because the points are relatively far apart. But it might be useful to see the distance between Sample_1, `r lowd_n`, and `r highd_n` while simultaneously taking into account Variables 3 and 4. More generally, it would be useful to see how distant different points are from one another given all of the dimensions in the data set. Ordination methods are a tools that try to do this, allowing us to visualse high-dimensional variation in data in a reduced number of dimensions (usually two).
+
+
+<a name="pca">Principle Component Analysis: key concepts</a>
+================================================================================
+
+
+
+<a name="maths">Principle Component Analysis: matrix algebra</a>
+================================================================================
+
+
+
+
+<a name="wasps">Fig wasp morphological data</a>
+================================================================================
+
+
+
+<a name="Rcode">Principle Component Analysis in R</a>
+================================================================================
+
+
+<a name="conclusions">Conclusions</a>
+================================================================================
+
+
+
+<a name="refs">Literature cited</a>
+================================================================================
+
