@@ -172,11 +172,22 @@ plot(x = ecorr$x[,1], y = ecorr$x[,2], ylim = c(-12, 12), xlim = c(-12, 12),
 
 The panel on the left shows two perfectly correlated variables. The panel on the right shows what the PCA would look like. Note that there is no variation on PC2. One hundred percent of the variation can be described using PC1, meaning that if we know the value of Variable_1, then we can certain about the value of Variable_2.
 
-I will now move on to introduce a morphological data set collected in 2010 from a fig wasp community surrounding the Sonoran Desert rock fig (*Ficus petiolaris*). These data were originall published in @Duthie2015b, and they are publicly available [on GitHub](https://github.com/StirlingCodingClub/ordination/tree/master/data).
+I will now move on to introduce a morphological data set collected in 2010 from a fig wasp community surrounding the Sonoran Desert rock fig (*Ficus petiolaris*). These data were originally published in @Duthie2015b, and they are publicly available [on GitHub](https://github.com/StirlingCodingClub/ordination/tree/master/data).
 
 
 <a name="wasps">Fig wasp morphological data</a>
 ================================================================================
+
+The association between fig trees and their pollinating and seed-eating wasps is a classic example of mutualism. The life-histories of figs and pollinating fig wasps are well-known and fascinating  [@Janzen1979; @Weiblen2002], but less widely known are the species rich communities of non-pollinating exploiter species of fig wasps [@Borges2015]. These non-pollinating fig wasps make use of resources within figs in a variety of ways; some lay eggs into developing fig ovules without pollinating, while others are parasites of other wasps. All of these wasps develop alongside the pollinators and seeds within the enclosed inflorescence of figs, and emerge as adults typically after several weeks. Part of my doctoral work focused on the community of fig wasps that lay eggs in the figs of *F. petiolaris* in Baja, Mexico.
+
+![](images/fig_tree.jpg)
+
+The community of non-pollinators associated with *F. petiolaris* includes five species of the genera *Idarnes* (3) and *Heterandrium* (2). Unlike pollinators, which climb into a small hole of the enclosed infloresence and pollinate and lay eggs from inside, these non-pollinators drill their ovipositors directly into the wall of the fig. The left panel below shows a fig sliced in half (which often results in hundreds of fig wasps emerging from the inside). The right panel shows a fig on a branch.
+
+![](images/fruitbranch.png)
+
+
+
 
 
 <a name="Rcode">Principal Component Analysis in R</a>
