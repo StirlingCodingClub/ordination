@@ -178,7 +178,7 @@ I will now move on to introduce a morphological data set collected in 2010 from 
 <a name="wasps">Fig wasp morphological data</a>
 ================================================================================
 
-The association between fig trees and their pollinating and seed-eating wasps is a classic example of mutualism. The life-histories of figs and pollinating fig wasps are well-known and fascinating  [@Janzen1979; @Weiblen2002], but less widely known are the species rich communities of non-pollinating exploiter species of fig wasps [@Borges2015]. These non-pollinating fig wasps make use of resources within figs in a variety of ways; some lay eggs into developing fig ovules without pollinating, while others are parasites of other wasps. All of these wasps develop alongside the pollinators and seeds within the enclosed inflorescence of figs, and emerge as adults typically after several weeks. Part of my doctoral work focused on the community of fig wasps that lay eggs in the figs of *F. petiolaris* in Baja, Mexico.
+The association between fig trees and their pollinating and seed-eating wasps is a classic example of mutualism. The life-histories of figs and pollinating fig wasps are well-known and fascinating  [@Janzen1979; @Weiblen2002], but less widely known are the species rich communities of non-pollinating exploiter species of fig wasps [@Borges2015]. These non-pollinating fig wasps make use of resources within figs in a variety of ways; some lay eggs into developing fig ovules without pollinating, while others are parasites of other wasps. All of these wasps develop alongside the pollinators and seeds within the enclosed inflorescence of figs, and emerge as adults typically after several weeks. Part of my doctoral work focused on the community of fig wasps that lay eggs in the figs of *F. petiolaris* in Baja, Mexico [@Duthie2015b; @Duthie2016].
 
 ![](images/fig_tree.jpg)
 
@@ -186,12 +186,54 @@ The community of non-pollinators associated with *F. petiolaris* includes five s
 
 ![](images/fruitbranch.png)
 
+The whole community is shown below. The pollinator is in panel 'a', while, panels 'b-f' show the non-pollinators that I will focus on here (panels 'g' and 'h' show a host-parasitoid pair).
 
 
+![](images/wasps.jpg){width=50%}
 
+As part of a test for evidence of a dispersal-fecundity tradeoff in the fig wasps in panels 'b-f', I estimated the mean wing loading of each species using body volume (body volume divided by wing surface area). This included 11 morphological measurements in total.
+
+```{r}
+fig_wasps    <- read.csv("data/wing_loadings.csv", header = TRUE);
+fig_cols     <- colnames(fig_wasps);
+print(fig_cols);
+```
+
+Below, I will run a PCA in R to look at the total variation in non-pollinating fig wasp morphology. To keep things simple, I will focus just on the two species of *Heterandrium* (panels 'e, f' in the image above). 
 
 <a name="Rcode">Principal Component Analysis in R</a>
 ================================================================================
+
+First, I will trim down the data set in `fig_wasps` that I read in above to remove all species that are not in the genus *Heterandrium*. There are two species of *Heterandrium* that I will put into a single data set.
+
+```{r}
+het1 <- fig_wasps[fig_wasps[,1] == "Het1",] # Species in panel 'f' above
+het2 <- fig_wasps[fig_wasps[,1] == "Het2",] # Species in panel 'e' above
+het  <- rbind(het1, het2);
+```
+
+This leaves us with a data frame with `r dim(het)[1]` rows and `r dim(het)[2]` columns. In total, there are `r sum(het[,1] == "Het1")` measurements from samples of 'Het1' and `r sum(het[,1] == "Het2")` measurements from samples of 'Het2'.
+
+Because PCA requires matrix manipulations, we need the R object holding the data to be a matrix. To do this, we can get rid of the first four columns of data. These columns include the species names, and the site, tree, and fruit from which the fig wasp was collected.
+
+```{r}
+dat <- het[,-(1:4)]; # Remove columns 1 through 4
+```
+
+We now need to define `dat` as a matrix.
+
+```{r}
+dat <- as.matrix(dat);
+```
+
+This leaves us with the final version of the data set that we will use. It includes `r dim(dat)[2]` columns of morphological measurements.
+
+```{r}
+head(dat);
+```
+
+These `r dim(dat)[2]` columns are our variables 1-`r dim(dat)[2]`. Our fly measurements thereby occupy some position in `r dim(dat)[2]`-dimensional space, which is way too complex to visualise.
+
 
 
 <a name="maths">Principal Component Analysis: matrix algebra</a>
