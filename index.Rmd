@@ -98,7 +98,7 @@ What if we wanted to show as much of the total variation as possible just on the
 ```{r, fig.width = 10, fig.height = 5, echo = FALSE}
 # Plotting the actual data
 par(mfrow = c(1, 2), mar = c(5, 5, 1, 0.5), lwd = 2)
-plot(x = eg_mat[,1], y = eg_mat[,2], ylim = c(-8, 10), xlim = c(-8, 10), 
+plot(x = eg_mat[,1], y = eg_mat[,2], ylim = c(-9, 11), xlim = c(-9, 11), 
      asp = 1, cex.lab = 1.25, cex.axis = 1.25, pch = 20, cex = 4, 
      xlab = "Variable 1", ylab = "Variable 2");
 text(x = eg_mat[,1], y = eg_mat[,2], labels = 1:12, col = "white", 
@@ -113,7 +113,7 @@ text(x = eg_mat[,1], y = eg_mat[,2], labels = 1:12, col = "white",
 # Principal component analysis
 pc_eg <- prcomp(x = eg_mat[,1:2]);
 par(mar = c(5, 5, 1, 1));
-plot(x = pc_eg$x[,1], y = pc_eg$x[,2], ylim = c(-4, 4), xlim = c(-9, 9), 
+plot(x = pc_eg$x[,1], y = pc_eg$x[,2], ylim = c(-4, 4), xlim = c(-10, 10), 
      asp = 1, cex.lab = 1.25, cex.axis = 1.25, pch = 20, cex = 4, 
      xlab = "Principal Component 1", ylab = "Principal Component 2");
 text(x = pc_eg$x[,1], y = pc_eg$x[,2], labels = 1:12, col = "white", 
@@ -226,14 +226,93 @@ We now need to define `dat` as a matrix.
 dat <- as.matrix(dat);
 ```
 
+```{r, echo = FALSE}
+rownames(dat) <- NULL;
+```
+
 This leaves us with the final version of the data set that we will use. It includes `r dim(dat)[2]` columns of morphological measurements.
 
 ```{r}
 head(dat);
 ```
 
-These `r dim(dat)[2]` columns are our variables 1-`r dim(dat)[2]`. Our fly measurements thereby occupy some position in `r dim(dat)[2]`-dimensional space, which is way too complex to visualise.
+These `r dim(dat)[2]` columns are our variables 1-`r dim(dat)[2]`. Our fly measurements thereby occupy some position in `r dim(dat)[2]`-dimensional space on `r dim(dat)[2]` orthogonal axes, which is way too complex to visualise all at once. We can first take a look at all of the possible scatterplots using `pairs`.
 
+```{r}
+pairs(x = dat, gap = 0, cex.labels = 0.5);
+```
+
+There is not much that we can infer from this, except that most of the variables appear to be highly correlated. A PCA is therefore likely to be useful. Before building the PCA, it is probably a good idea to scale all of our variables. This would be especially important if we had variables measured in different units. If we scale the variables to have the same mean and standard deviation, then the PCA could potentially be affected by the units in which variables were measured, which does not make sense. If, for example, we had measured thorax length and width in $mm^2$, but abdomen length and width in $cm^{2}$, we would get thorax measurements contributing more to PC1 just because the measured values would be larger (if you do not believe me, try multiplying all values in one column of the data by 10 or 100, then re-run the PCA below). For data sets that include measurements with much different unit scales (e.g., pH versus elevation in metres above sea level), this is especially problematic. I will therefore scale the data below.
+
+```{r}
+dat <- scale(dat);
+```
+
+Now every variable has a mean of zero and a standard deviation of one. We are finally ready to build our PCA, using only one line of code.
+
+```{r}
+pca_dat <- prcomp(dat);
+```
+
+That is it. If we want to plot the first two principle components, we can do so with the following code.
+
+```{r}
+par(mar = c(5, 5, 1, 1));
+plot(x = pca_dat$x[,1], y = pca_dat$x[,2], asp = 1, cex.lab = 1.25, 
+     cex.axis = 1.25, xlab = "PC1", ylab = "PC2");
+```
+
+Ignore the arguments that start with `cex`; these are just plotting preferences. But the argument `asp = 1` is important; it ensures that one unit along the x-axis is the same distance as one unit along the y-axis. If this were not set, then the distance between any two points might be misleading. If, for example, moving 100 pixels on the x-axis correponsded to one unit on PC1, but moving 100 pixels on the y-axis corresponded to two units in PC2, then the variation in PC1 would look larger relative to PC2 than it should.
+
+Note that we are not at all restricted to comparing PC1 and PC2. We can look at any of the `r dim(pca_dat$x)[2]` PCs that we want. Below compares PC1 with PC3.
+
+```{r}
+par(mar = c(5, 5, 1, 1));
+plot(x = pca_dat$x[,1], y = pca_dat$x[,3], asp = 1, cex.lab = 1.25, 
+     cex.axis = 1.25, xlab = "PC1", ylab = "PC3");
+```
+
+Note that the points are in the same locations on the x-axis (PC1) as before, but not the y-axis (now PC3). We have just rotated 90 degrees in our `r dim(pca_dat$x)[2]`-dimensional space and are therefore looking at our cloud of data from a different angle.
+
+Recall that we had two groups in these data; two species of the genus *Heterandrium*. Now that we have plotted the position of all wasp measurements, we can also fill in the PCA with colours representing each species. This allows us to visualise how individuals in different groups are separated in our data.
+
+```{r}
+par(mar = c(5, 5, 1, 1));
+plot(x = pca_dat$x[,1], y = pca_dat$x[,2], asp = 1, cex.lab = 1.25, 
+     cex.axis = 1.25, xlab = "PC1", ylab = "PC2");
+h1_rw <- which(het[,1] == "Het1"); # Recall the original data set
+h2_rw <- which(het[,1] == "Het2"); # Recall the original data set
+points(x = pca_dat$x[h1_rw,1], y = pca_dat$x[h1_rw,2], pch = 20, col = "red");
+points(x = pca_dat$x[h2_rw,1], y = pca_dat$x[h2_rw,2], pch = 20, col = "blue");
+legend("topleft", fill = c("red", "blue"), cex = 1.5, 
+       legend = c( expression(paste(italic("Heterandrium "), 1)), 
+                   expression(paste(italic("Heterandrium "), 2))));
+```
+
+From the groups overlaid onto the PCA, it is clear that these two species of *Heterandrium* differ in their morphological measurements. Often groups are not so clearly distinguished (i.e., data are usually more messy), and it is important to again remember that the PCA is not actually testing any statistical hypothesis. It is just plotting the data. If we wanted to test whether or not the difference between species measurements was statistically significant, then we would need to use some sort of appropriate multivariate test, such as a [MANOVA](https://en.wikipedia.org/wiki/Multivariate_analysis_of_variance) (that is, a [linear model](https://stirlingcodingclub.github.io/linear_modelling/) with multiple continuous dependent variables and a single categorical independent variable), or an appropriate [randomisation approach](https://stirlingcodingclub.github.io/randomisation/randomisation_notes.html). 
+
+We can look at the amount of variation explained by each PC by examining `pca_dat$sdev`, which reports the standard deviations of the principal components.
+
+```{r}
+pca_dat$sdev;
+```
+
+If we want to see the proportion of the total variation explained by each of the PCs, we can just calculate the variation in each PC divided by the total variation of all PCs.
+
+```{r}
+pca_variance      <- (pca_dat$sdev) * (pca_dat$sdev);
+pca_pr_explained  <- pca_variance / sum(pca_variance);
+print(pca_pr_explained);
+```
+
+Note that all of the values above sum to `r sum(pca_pr_explained)`. It appears that about `r round(100 * sum(pca_pr_explained[1:2]), digits = 2)` per cent of the total variation is explained by PC1 and PC2, so we are looking at a lot of variation in the PCA showed above. It is sometimes helpful to plot the proportion of the variation explained by each PC in a bar plot.
+
+
+- biplot
+
+- loadings
+
+Those who are satisfied with their conceptual understanding of PCA, and the ability to use PCA in R, can stop here. In the next section, I will explain how PCA works mathematically.
 
 
 <a name="maths">Principal Component Analysis: matrix algebra</a>
