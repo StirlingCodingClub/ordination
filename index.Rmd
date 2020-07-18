@@ -22,10 +22,10 @@ Contents
 ********************************************************************************
 
 - [Introduction: What is ordination?](#intro)
-- [Principal Component Analysis: key concepts](#PCA) 
-- [Principal Component Analysis: matrix algebra](#maths) 
+- [Principal Component Analysis: key concepts](#pca) 
 - [Fig wasp morphological data](#wasps)
 - [Principal Component Analysis in R](#Rcode)
+- [Principal Component Analysis: matrix algebra](#maths) 
 - [Conclusions](#conclusions)
 - [Literature Cited](#refs)
 
@@ -153,8 +153,26 @@ plot(x = A0_pc$x[,1], y = A0_pc$x[,2], ylim = c(-10, 10), xlim = c(-10, 10),
 ```
 
 
-Second, if two variables are completely correlated, the maths underlying PCA does not work because a [singluar matrix](https://mathworld.wolfram.com/SingularMatrix.html) is created (this is the matrix algebra equivalent of dividing by zero).
+Second, if two variables are completely correlated, the maths underlying PCA does not work because a [singluar matrix](https://mathworld.wolfram.com/SingularMatrix.html) is created (this is the matrix algebra equivalent of dividing by zero). Here is what it looks like visually if two variables are completely correlated.
 
+```{r, fig.width = 10, fig.height = 5, echo = FALSE}
+ecrr1  <-  runif(n = 48, min = 2, max = 16);
+ecrr2  <-  ecrr1 + 0.4;
+ecorr  <- cbind(ecrr1, ecrr2);
+par(mfrow = c(1, 2), mar = c(5, 5, 1, 0.5), lwd = 2);
+plot(x = ecorr[,1], y = ecorr[,2], ylim = c(-2, 22), xlim = c(-2, 22), 
+     asp = 1, cex.lab = 1.25, cex.axis = 1.25, pch = 20, cex = 1, 
+     xlab = "Variable 1", ylab = "Variable 2");
+ecorr <- prcomp(x = ecorr[,1:2]);
+par(mar = c(5, 5, 1, 1));
+plot(x = ecorr$x[,1], y = ecorr$x[,2], ylim = c(-12, 12), xlim = c(-12, 12), 
+     asp = 1, cex.lab = 1.25, cex.axis = 1.25, pch = 20, cex = 1, 
+     xlab = "Principal Component 1", ylab = "Principal Component 2");
+```
+
+The panel on the left shows two perfectly correlated variables. The panel on the right shows what the PCA would look like. Note that there is no variation on PC2. One hundred percent of the variation can be described using PC1, meaning that if we know the value of Variable_1, then we can certain about the value of Variable_2.
+
+I will now move on to introduce a morphological data set collected in 2010 from a fig wasp community surrounding the Sonoran Desert rock fig (*Ficus petiolaris*). These data were originall published in @Duthie2015b, and they are publicly available [on GitHub](https://github.com/StirlingCodingClub/ordination/tree/master/data).
 
 
 <a name="wasps">Fig wasp morphological data</a>
