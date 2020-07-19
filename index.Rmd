@@ -254,7 +254,14 @@ Now every variable has a mean of zero and a standard deviation of one. We are fi
 pca_dat <- prcomp(dat);
 ```
 
-That is it. If we want to plot the first two principle components, we can do so with the following code.
+That is it. Here is what the output looks like when printed out. Do not worry about the details. I will come back to explain it later.
+
+```{r, echo = FALSE}
+print(pca_dat);
+```
+
+
+If we want to plot the first two principle components, we can do so with the following code.
 
 ```{r}
 par(mar = c(5, 5, 1, 1));
@@ -294,23 +301,86 @@ From the groups overlaid onto the PCA, it is clear that these two species of *He
 We can look at the amount of variation explained by each PC by examining `pca_dat$sdev`, which reports the standard deviations of the principal components.
 
 ```{r}
-pca_dat$sdev;
+pca_variance      <- (pca_dat$sdev) * (pca_dat$sdev); # Get variance
+print(pca_variance);
 ```
 
-If we want to see the proportion of the total variation explained by each of the PCs, we can just calculate the variation in each PC divided by the total variation of all PCs.
+
+To make it more easy to interpret the variances along each PC, we can use a [screeplot](https://en.wikipedia.org/wiki/Scree_plot). There is a function for this in base R, which takes the direct output of the `prcomp` function.
 
 ```{r}
-pca_variance      <- (pca_dat$sdev) * (pca_dat$sdev);
+screeplot(pca_dat, npcs = 11, main = "", type = "lines", cex.lab = 1.5);
+```
+
+The screeplot above provides a useful indication of how much variation explained decreases per PC (or how much variation is explained by the first $n$ axes). To make things even easier to visualise, it might help to present the above in terms of per cent of the variance explained on each axis.
+
+```{r}
 pca_pr_explained  <- pca_variance / sum(pca_variance);
 print(pca_pr_explained);
 ```
 
-Note that all of the values above sum to `r sum(pca_pr_explained)`. It appears that about `r round(100 * sum(pca_pr_explained[1:2]), digits = 2)` per cent of the total variation is explained by PC1 and PC2, so we are looking at a lot of variation in the PCA showed above. It is sometimes helpful to plot the proportion of the variation explained by each PC in a bar plot.
+Note that all of the values above sum to `r sum(pca_pr_explained)`. It appears that about `r round(100 * sum(pca_pr_explained[1:2]), digits = 2)` per cent of the total variation is explained by PC1 and PC2, so we are looking at a lot of variation in the PCA showed above. We can plot the proportion of the variation explained by each PC in a bar plot.
+
+```{r}
+pc_names <- paste("PC", 1:length(pca_pr_explained), sep = "");
+barplot(height = pca_pr_explained * 100, names = pc_names, cex.names = 0.8,
+        ylab = "Per cent of total variation explained", cex.lab = 1.25);
+```
 
 
-- biplot
+Notice that the general pattern of the barplot above is the same as the screeplot.
 
-- loadings
+We can also look at a biplot (i.e., a loading plot). The biplot below shows the first two principal components (data points are now numbers 1 to `r dim(pca_dat$x)[1]`, indicating the sample or row number of the fig wasp from the original scaled data set, `dat`), but also the direction of each of our original variables (morphological measurements) in relation to these principal components. 
+
+```{r, fig.width = 8, fig.height = 8}
+biplot(pca_dat, cex = 0.8, asp = 1);
+```
+
+The direction of the red arrows shows the relationships among the `r dim(pca_dat$x)[2]` different variables. Intuitively, variables with arrows pointing in similar directions are positively correlated, while those pointing in opposite directions are negatively correlated (more technically, the cosine of the angle between arrows, in radians, actually equals the correlation between them; e.g., cos(0) = `r cos(0)` and cos($\pi$) = `r cos(pi)`; recall that $\pi$ radians equals 180 degrees). In the above example, wasp head width and thorax width are highly correlated because the two arrows are pointing in very similar directions. In contrast, ovipositor length and ovipositor width appear to be pointing in very different directions, implying that the two are pointing in different directions on PC1 and PC2.
+
+The direction of these arrows is determined by the loading of each variable on PC1 and PC2. The loading is the value that you would need to multiply each variable to get the score of a data point on the principal component. The loadings can be found in the `pca_dat` results as `pca_dat$rotation`. I will just show the loadings for the first two principle components below.
+
+```{r}
+print(pca_dat$rotation[,1:2]); # Note: 11 total columns; one for each PC
+```
+
+We can see how the loadings of each variable match up with each arrows by going back to the output of `pca_dat`. To get the direction of the arrows, we need to multiply the loadings in `pca_dat$rotation` above by the standard deviation of each principle component in `pca_dat$sdev`. I do this below to show how we can manually reproduce the position of the red arrows from the `pca_dat` output.
+
+```{r, fig.width = 8, fig.height = 8}
+biplot(pca_dat, cex = 0.8, asp = 1);
+# Note that the arrows are scaled by a factor of ca 4.5, hence the scaling below
+points(x = 4.5 * pca_dat$sdev[1] * pca_dat$rotation[,1],
+       y = 4.5 * pca_dat$sdev[2] * pca_dat$rotation[,2],
+       col = "blue", pch = 20, cex = 1.5);
+```
+
+I hope that this clarifies how to produce and interpret a PCA, a screeplot, and a biplot in R. I also hope that the output that I showed earlier generated generated from `prcomp(dat)` is now clear. For one last illustration to further connect this output with the PCA, I will reproduce a PCA just from the original data points in `dat` and the loadings for PC1 and PC2 found in the output of `prcomp(dat)`, `pca_dat`. For each fly, we take the sum of each measurement times its corresponding loading on PC1 and PC2. Hence, the position of the first wasp in `dat` (first row) on PC1 would be found by multipling `dat[1,]` times `pca_dat$rotation[,1]`. Here is a reminder of what `dat[1,]` looks like.
+
+```{r, echo = FALSE}
+print(dat[1,]);
+```
+
+Here are the loadings for PC1 (`pca_dat$rotation[,1]`).
+
+```{r, echo = FALSE}
+print(pca_dat$rotation[,1]);
+```
+
+
+We calculate the sum of each element multiplied together:  (`r dat[1,1]` $\times$ `r pca_dat$rotation[1,1]`) + (`r dat[1,2]` $\times$ `r pca_dat$rotation[2,1]`) + $...$ + (`r dat[1,11]` $\times$ `r pca_dat$rotation[11,1]`). This gives a value of `r sum(dat[1,] * pca_dat$rotation[,1])`, which is the location of the first data point on PC1. When we do this calculation for PC1 and PC2 for all of the data, we can get the coordinates to plot on our PCA. I do this with the code below. Note that the `for` [loop](https://stirlingcodingclub.github.io/using_loops/loop_notes.html) is just cycling through each individual wasp sample (do not worry about this if the code is unfamiliar). 
+
+
+```{r, fig.width = 8, fig.height = 8}
+plot(x = 0, y = 0, type = "n", xlim = c(-6.2, 4.2), ylim = c(-4, 3), asp = 1,
+     xlab = "PC1", ylab = "PC2", cex.axis = 1.25, cex.lab = 1.25);
+for(i in 1:dim(dat)[1]){ # Take the sum of the measurements times PC loadings
+  pt_PC1 <- sum(dat[i,] * pca_dat$rotation[,1]); # measurements times loadings 1
+  pt_PC2 <- sum(dat[i,] * pca_dat$rotation[,2]); # measurements times loadings 2
+  points(x = pt_PC1, y = pt_PC2, cex = 4, col = "black", pch = 20);
+  text(x = pt_PC1, y = pt_PC2, col = "white", labels = i, cex = 0.8);
+}
+```
+
 
 Those who are satisfied with their conceptual understanding of PCA, and the ability to use PCA in R, can stop here. In the next section, I will explain how PCA works mathematically.
 
