@@ -1,5 +1,5 @@
 ---
-title: "Introduction to ordination in R"
+title: "Introduction to ordination (PCA) in R"
 author: "Brad Duthie"
 date: "22 July 2020"
 output:
@@ -388,6 +388,69 @@ Those who are satisfied with their conceptual understanding of PCA, and the abil
 <a name="maths">Principal Component Analysis: matrix algebra</a>
 ================================================================================
 
+A Principal Component Analysis is basically just an [eigenanalysis](https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors) of a [covariance matrix](https://en.wikipedia.org/wiki/Covariance_matrix). I will present the maths underlying this and show the calculations in some detail, but a full explanation of matrix algebra, and [eigenvalues and eigenvectors](https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors) is beyond the scope of these notes. Following my approach in the [key concepts](#pca) section above, I am going to try to present the key calculations and some of the key mathematical ideas using two dimensions to make everything easier to calculate and visualise. First, a reminder of what our simulated data look like from the first section.
+
+```{r, echo = FALSE}
+print(eg_mat);
+```
+
+Again, I am just going to use the first two columns of data, so I will create a truncated data set `eg_m` using just two of the columns from above.
+
+```{r}
+eg_m <- eg_mat[,1:2]; # Now we have an R object with just two columns
+```
+
+We can start by just running a PCA as we did in the [section above](#Rcode) with `pr_comp`.
+
+```{r}
+prcomp(eg_m);
+```
+
+Here is our starting point, with standard deviations and loadings for each PC that we know are correct. Now we can attempt to do this whole analysis manually, without the `prcomp` function. To start, we need to get the covariance matrix of the data. A covariance matrix is just a square matrix in which off-diagonal elements hold the covariance between variable $X_{i}$ and $X_{j}$ in row $i$ and column $j$. Diagonal elements (upper left to lower right) hold the variance of variable $X_{i}$ (i.e., the covariance between $X_{i}$ and itself, where $i$ is both the row and column),
+
+$$
+V = \begin{pmatrix}
+  Var(X_{1}), & Cov(X_{1}, X_{2}) \\
+  Cov(X_{2}, X_{1}), & Var(X_{2}) \\
+\end{pmatrix}.
+$$
+
+[Covariance](https://en.wikipedia.org/wiki/Covariance) and [variance](https://en.wikipedia.org/wiki/Variance) are calculated as usual. In R, we can easily get the covariance matrix using the `cov` function.
+
+```{r}
+V <- cov(eg_m); # Variance covariance matrix of two simulated measurements
+print(V);
+```
+
+Note that the matrix is [symmetric](https://en.wikipedia.org/wiki/Symmetric_matrix), meaning that the $\textbf{V}$ equals its own transpose (i.e., we can swap the elements in row $i$ column $j$ for the elements in row $j$ column $i$ and get the same matrix). What we need now are the eigenvalues and eigenvectors of $\textbf{V}$. As an aside, R will calculate these with the function `eigen`, which I will do below.
+
+```{r}
+eigen(V); # Eigenvalues and eigenvectors of V
+```
+
+Notice that the eigenvectors are identical to the loadings from our `prcomp(eg_m)` above. This is because our principle components are just the eigenvectors of the covariance matrix. Similarly, the eigenvalues printed above are just the variances of the standard deviations output from `prcomp(eg_m)`. If we take the square root of them, we get the standard devations back.
+
+What are eigenvectors and eigenvalues, really? First, we can imagine a vector $\textbf{x}$ as an arrow pointing to some point in multivariate space, and represented by a list of numbers that indicate how far from the origin it points in each dimension. For a really simple example, we can take the vector $\textbf{x} = (2, 1)$, and visualise it on a plane.
+
+```{r}
+u <- c(2, 1);
+plot(x = 0, y = 0, type = "n", xlim = c(-1, 3), ylim = c(-1, 3), xlab = "",
+     ylab = "");
+arrows(x0 = 0, y0 = 0, x1 = u[1], y1 = u[2], length = 0.1, lwd = 3);
+abline(h = 0, lty = "dotted", lwd = 0.8);
+abline(v = 0, lty = "dotted", lwd = 0.8);
+```
+
+An *eigenvector* ($u$) is a vector that can be multiplied by its corresponding *eigenvalue* ($\lambda$) to give the same vector as you would get by multiplying a matrix $\textbf{V}$ by the same eigenvector,
+
+$$\textbf{Vu} = \lambda \textbf{u}.$$
+
+It is important to remember that matrix multiplication is different from scalar multiplication. When we multiply two matrices, we do not just multiply the element in row $i$ and column $j$ in one matrix by row $i$ and column $j$ in the other matrix. Matrix multiplication is a series of multiplying row elements of one matrix by the column elements of another, and summing these products between elements. It will be easier to illustrate with an example. 
+
+
+
+
+Take our square matrix $\textbf{V}$
 
 
 <a name="conclusions">Conclusions</a>
