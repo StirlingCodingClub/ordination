@@ -430,7 +430,7 @@ eigen(V); # Eigenvalues and eigenvectors of V
 
 Notice that the eigenvectors are identical to the loadings from our `prcomp(eg_m)` above. This is because our principle components are just the eigenvectors of the covariance matrix. Similarly, the eigenvalues printed above are just the variances of the standard deviations output from `prcomp(eg_m)`. If we take the square root of them, we get the standard devations back.
 
-What are eigenvectors and eigenvalues, really? First, we can imagine a vector $\textbf{x}$ as an arrow pointing to some point in multivariate space, and represented by a list of numbers that indicate how far from the origin it points in each dimension. For a really simple example, we can take the vector $\textbf{x} = (2, 1)$, and visualise it on a plane.
+What are eigenvectors and eigenvalues, really? I will try to explain without being too formal with the mathematics. First, a very quick review of vectors. We can imagine a vector $\textbf{x}$ as an arrow pointing to some point in multidimensional space, and represented by a list of numbers that indicate how far from the origin it points in each dimension. For a really simple example, we can take the vector $\textbf{x} = (2, 1)$, and visualise it on a plane.
 
 ```{r}
 u <- c(2, 1);
@@ -445,17 +445,165 @@ An *eigenvector* ($u$) is a vector that can be multiplied by its corresponding *
 
 $$\textbf{Vu} = \lambda \textbf{u}.$$
 
-It is important to remember that matrix multiplication is different from scalar multiplication. When we multiply two matrices, we do not just multiply the element in row $i$ and column $j$ in one matrix by row $i$ and column $j$ in the other matrix. Matrix multiplication is a series of multiplying row elements of one matrix by the column elements of another, and summing these products between elements. It will be easier to illustrate with an example. 
+It is important to remember that matrix multiplication is different from scalar multiplication. When we multiply two matrices, we do not just multiply the element in row $i$ and column $j$ in one matrix by row $i$ and column $j$ in the other matrix. Matrix multiplication is a series of multiplying row elements of one matrix by the column elements of another, and summing these products between elements. It will be easier to illustrate with an example. Take our covariance matrix $\textbf{V}$ and the example vector $\textbf{x}$. By multiplying row 1 by the column vector $\textbf{x}$, then row 2 by the column vector $\textbf{x}$, we get the following vector,
+
+```{r, echo = FALSE}
+x  <- matrix(data = c(2, 1), ncol = 1); 
+Vx <- V %*% x;
+```
+
+$$
+\begin{equation}
+\left[
+\begin{array}
+  ,`r round(V[1, 1], digits = 2)`, & `r round(V[1, 2], digits = 2)` \\
+  `r round(V[2, 1], digits = 2)`, & `r round(V[2, 2], digits = 2)`
+\end{array}
+\right] \left[
+\begin{array}
+  ,2 \\
+  1
+\end{array}
+\right] = \left[
+\begin{array}
+  ,`r round(Vx[1], digits = 2)` \\
+  `r round(Vx[2], digits = 2)`
+\end{array}
+\right]
+\end{equation}
+$$
+
+We can confirm this the long way by getting the first element of the product, $(`r round(V[1, 1], digits = 2)` \times 2) + (`r round(V[2, 1], digits = 2)` \times 1) =$ `r round(V[1, 1], digits = 2) * 2 + round(V[2, 1], digits = 2) * 1`. Likewise, we get the second element,  $(`r round(V[2, 1], digits = 2)` \times 2) + (`r round(V[2, 2], digits = 2)` \times 1) =$ `r round(V[2, 1], digits = 2) * 2 + round(V[2, 2], digits = 2) * 1`. Now, note that if we take our covariance matrix $\textbf{V}$ and multiply it by one of our eigenvectors calculated with `eigen` above ($\textbf{Vu}$), we get the same answer as if we mutliplied our single eigenvalue by the eigenvector,
 
 
 
+$$
+\begin{equation}
+\left[
+\begin{array}
+  ,`r round(V[1, 1], digits = 2)`, & `r round(V[1, 2], digits = 2)` \\
+  `r round(V[2, 1], digits = 2)`, & `r round(V[2, 2], digits = 2)`
+\end{array}
+\right] \left[
+\begin{array}
+  ,`r round(eigen(V)$vectors[1, 1], digits = 2)` \\
+  `r round(eigen(V)$vectors[2, 1], digits = 2)`
+\end{array}
+\right] = `r round(eigen(V)$values[1], digits = 2)` \left[
+\begin{array}
+  ,`r round(eigen(V)$vectors[1, 1], digits = 2)` \\
+  `r round(eigen(V)$vectors[2, 1], digits = 2)`
+\end{array}
+\right]
+\end{equation}
+$$
 
-Take our square matrix $\textbf{V}$
+Try confirming for yourself that the two sides of this equation are in fact equal (note that for the right side, you just multiply the scalar `r round(eigen(V)$values[1], digits = 2)` to each element as normal, so the first element in the product vector would be (`r round(eigen(V)$values[1], digits = 2)` $\times$ `r round(eigen(V)$vectors[1, 1], digits = 2)`) = `r round(eigen(V)$values[1], digits = 2) * round(eigen(V)$vectors[1, 1], digits = 2)`. Mathematically, multiplying the covariance matrix by one of its eigenvectors changes the size of that vector (but, critically, *not* its direction) by the same amount as multiplying it by its corresponding eigenvalue. The eigenvector associated with the leading eigenvalue (i.e., the largest eigenvalue) is therefore the direction along which most of the total variation lies in multidimensional space (PC1), and the eigenvalue itself is the variance in this direction.
+
+I will not go through the algebra of solving for the eigenvalues and eigenvectors here (but I could probably be convinced to do given sufficient demand). But I will point out one more equation that might help clarify the mathematics a bit further. Note that we can recreate the the covariance matrix ($\textbf{V}$) just using the eigenvalues and eigenvectors,
+
+$$\textbf{V} = \textbf{U}\Lambda\textbf{U}^{-1}.$$
+
+In the above, $\textbf{V}$ is our covariance matrix, $\textbf{U}$ is a matrix of our eigenvectors, and $\Lambda$ is a [diagonal matrix](https://en.wikipedia.org/wiki/Diagonal_matrix) of our eigenvalues (i.e., a matrix where all off-diagonal elements are zero). The negative one exponent at the end tells us to find the inverse of $\textbf{U}$; this is just the matrix that we need to multiply $\textbf{U}$ by to get back to the identity matrix (a matrix with ones in the diagonal and zeros everywhere else). We can see what this looks like using the eigenvalues that we calculated above from `eigen(V)`.
+
+```{r}
+U <- eigen(V)$vectors;
+print(U);
+```
+
+We can get the inverse using `solve` in R.
+
+```{r}
+U_inv <- solve(U);
+print(U_inv);
+```
+
+Matrix multiplication in R is performed using `%*%` instead of `*`, so we can see the relationship between `U` and `U_inv` below.
+
+```{r}
+U %*% U_inv; # Identity matrix, with a bit of a rounding error.
+```
+
+Mathematically, here is what that looks like.
+
+$$
+\begin{equation}
+\left[
+\begin{array}
+  ,1, & 0 \\
+  0, & 1
+\end{array}
+\right] =  \left[
+\begin{array}
+  ,`r round(U[1, 1], digits = 2)`, & `r round(U[1, 2], digits = 2)` \\
+  `r round(U[2, 1], digits = 2)`, & `r round(U[2, 2], digits = 2)`  \\
+\end{array}
+\right] \left[
+\begin{array}
+  ,`r round(U_inv[1, 1], digits = 2)`, & `r round(U_inv[1, 2], digits = 2)` \\
+  `r round(U_inv[2, 1], digits = 2)`, & `r round(U_inv[2, 2], digits = 2)`  \\
+\end{array}
+\right]
+\end{equation}
+$$
+
+Hence, the inverse of a matrix is the scalar equivalent of $1 = x(1/x)$. We just have a value of one in each dimension. Putting this all together, we can get back to our original covariance matrix by inserting our eigenvalues into the right side of the equation.
+
+```{r, echo = FALSE}
+L       <- matrix(data = 0, nrow = 2, ncol = 2);
+L[1, 1] <- eigen(V)$values[1];
+L[2, 2] <- eigen(V)$values[2];
+```
+
+$$
+\begin{equation}
+\left[
+\begin{array}
+  ,`r round(V[1, 1], digits = 2)`, & `r round(V[1, 2], digits = 2)` \\
+  `r round(V[2, 1], digits = 2)`, & `r round(V[2, 2], digits = 2)`  
+\end{array}
+\right] =  \left[
+\begin{array}
+  ,`r round(U[1, 1], digits = 2)`, & `r round(U[1, 2], digits = 2)` \\
+  `r round(U[2, 1], digits = 2)`, & `r round(U[2, 2], digits = 2)`  
+\end{array}
+\right]\left[
+\begin{array}
+  ,`r round(L[1, 1], digits = 2)`, & `r round(L[1, 2], digits = 2)` \\
+  `r round(L[2, 1], digits = 2)`, & `r round(L[2, 2], digits = 2)`  
+\end{array}
+\right]\left[
+\begin{array}
+  ,`r round(U_inv[1, 1], digits = 2)`, & `r round(U_inv[1, 2], digits = 2)` \\
+  `r round(U_inv[2, 1], digits = 2)`, & `r round(U_inv[2, 2], digits = 2)`  
+\end{array}
+\right]
+\end{equation}
+$$
+
+We can confirm all of this in R using our matrices `V`, `U`, and `U_inv`, and creating a new square diagonal matrix holiding the eigenvalues, `L`.
+
+```{r}
+L       <- matrix(data = 0, nrow = 2, ncol = 2);
+L[1, 1] <- eigen(V)$values[1];
+L[2, 2] <- eigen(V)$values[2];
+# We can print these matrices below.
+print(V); print(U); print(U_inv); print(L);
+```
+
+Finally, we can replicate the right hand side of the equation above to get back our original covariance matrix from the eigenvalues and eigenvectors.
+
+```{r}
+U %*% L %*% U_inv;
+```
+
+We have now shown the mathematical relationship between our covariance matrix and its associated eigenvectors and eigenvalues.
 
 
 <a name="conclusions">Conclusions</a>
 ================================================================================
 
+Ordination is a useful tool for visualising and thinking about the variation of multivariate data. Principal Components Analysis is one method of ordination, but there are others such as Non-metric Multidimensional Scaling (NMDS), Principal Coordinates Analysis (PCoA), and Canonical Variates Analysis (CVA). These different types of ordination are useful for different purposes and different data sets, so it is worth learning a bit about them before deciding what type of ordination is most appropriate for your own data. My hope is that this detailed breakdown of PCA will help you understand the general objectives of ordination, give you the ability to use PCA in your own research, and make it easier to learn new ordination methods.
 
 
 <a name="refs">Literature cited</a>
