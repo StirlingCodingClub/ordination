@@ -3,9 +3,9 @@ title: "Introduction to ordination (PCA) in R"
 author: "Brad Duthie"
 date: "22 July 2020"
 output:
+  pdf_document: default
   html_document:
     code_folding: show
-  pdf_document: default
   word_document: default
 bibliography: refs.bib
 link-citations: yes
@@ -91,9 +91,9 @@ These notes will focus entirely on Principal Component Analysis (PCA), which is 
 
 Imagine a scatterplot of data, with each variable getting its own axis representing some kind of measurement. If there are only two variables, as with the scatterplot above, then we would only need an x-axis and a y-axis to show the *exact* position of each data point in data space. If we add a third variable, then we would need a z-axis, which would be orthogonal to the x-axis and y-axis (i.e., three dimensions of data space). If we need to add a fourth variable, then we would need yet another axis along which our data points could vary, making the whole data space extremely difficult to visualise. As we add yet more variables and more axes, the position that our data points occupy in data space becomes impossible to visualise.
 
-Principal Component Analysis (PCA) can be interpreted as a rotation of data in this multi-dimensional space. The distance between data points does not change at all; the data are just moved around so that the total variation in the data set is easier to see. If this verbal explanation is confusing, that is okay; a visual example should make the idea easier to understand. To make everything easy to see, I will start with only two dimensions using Variable_1 and Variable_2 from earler (for now, just ignore the existence of Variables 3 and 4). Notice from the scatterplot that there is variation in both dimensions of the data; the variance of Variable_1 is `r round(var(eg_mat[,1]), digits = 2)`, and the variance of Variable_2 is `r round(var(eg_mat[,2]), digits = 2)`. But these variables are also clearly correlated. A sample for which Variable_1 is measured to be high is also very likely measure a high value of Variable_2 (perhaps these are measurements of animal length and width). 
+Principal Component Analysis (PCA) can be interpreted as a rotation of data in this multi-dimensional space. The distance between data points does not change at all; the data are just moved around so that the total variation in the data set is easier to see. If this verbal explanation is confusing, that is okay; a visual example should make the idea easier to understand. To make everything easy to see, I will start with only two dimensions using Variable_1 and Variable_2 from earlier (for now, just ignore the existence of Variables 3 and 4). Notice from the scatterplot that there is variation in both dimensions of the data; the variance of Variable_1 is `r round(var(eg_mat[,1]), digits = 2)`, and the variance of Variable_2 is `r round(var(eg_mat[,2]), digits = 2)`. But these variables are also clearly correlated. A sample for which Variable_1 is measured to be high is also very likely measure a high value of Variable_2 (perhaps these are measurements of animal length and width). 
 
-What if we wanted to show as much of the total variation as possible just on the x-axis? In other words, rotate the data so that the maximimum amount of variance in the full data set (i.e., in the scatterplot) falls along the x-axis, with any variation remaining being left to fall along the y-axis? To do this, we need to draw a line that cuts through our two dimensions of space in the direction where the data is most stretched out (i.e., has the highest variance); **this direction is our first Principal component, PC1**. I have drawn it below in red (left panel).
+What if we wanted to show as much of the total variation as possible just on the x-axis? In other words, rotate the data so that the maximimum amount of variance in the full data set (i.e., in the scatterplot) falls along the x-axis, with any variation remaining being left to fall along the y-axis? To do this, we need to draw a line that cuts through our two dimensions of space in the direction where the data are most stretched out (i.e., have the highest variance); **this direction is our first Principal component, PC1**. I have drawn it below in red (left panel).
 
 ```{r, fig.width = 10, fig.height = 5, echo = FALSE}
 # Plotting the actual data
@@ -178,7 +178,7 @@ I will now move on to introduce a morphological data set collected in 2010 from 
 <a name="wasps">Fig wasp morphological data</a>
 ================================================================================
 
-The association between fig trees and their pollinating and seed-eating wasps is a classic example of mutualism. The life-histories of figs and pollinating fig wasps are well-known and fascinating  [@Janzen1979; @Weiblen2002], but less widely known are the species rich communities of non-pollinating exploiter species of fig wasps [@Borges2015]. These non-pollinating fig wasps make use of resources within figs in a variety of ways; some lay eggs into developing fig ovules without pollinating, while others are parasites of other wasps. All of these wasps develop alongside the pollinators and seeds within the enclosed inflorescence of figs, and emerge as adults typically after several weeks. Part of my doctoral work focused on the community of fig wasps that lay eggs in the figs of *F. petiolaris* in Baja, Mexico [@Duthie2015b; @Duthie2016].
+The association between fig trees and their pollinating and seed-eating wasps is a classic example of mutualism. The life-histories of figs and pollinating fig wasps are well-known and fascinating  [@Janzen1979; @Weiblen2002], but less widely known are the species rich communities of non-pollinating exploiter species of fig wasps [@Borges2015]. These non-pollinating fig wasps make use of resources within figs in a variety of ways; some lay eggs into developing fig ovules without pollinating, while others are parasitoids of other wasps. All of these wasps develop alongside the pollinators and seeds within the enclosed inflorescence of figs, and emerge as adults typically after several weeks. Part of my doctoral work focused on the community of fig wasps that lay eggs in the figs of *F. petiolaris* in Baja, Mexico [@Duthie2015b; @Duthie2016].
 
 ![](images/fig_tree.jpg)
 
@@ -186,7 +186,7 @@ The community of non-pollinators associated with *F. petiolaris* includes five s
 
 ![](images/fruitbranch.png)
 
-The whole community is shown below. The pollinator is in panel 'a', while, panels 'b-f' show the non-pollinators that I will focus on here (panels 'g' and 'h' show a host-parasitoid pair).
+The whole fig wasp community is shown below. The pollinator is in panel 'a', while, panels 'b-h' show the non-pollinators (panels 'g' and 'h' show a host-parasitoid pair).
 
 
 ![](images/wasps.jpg){width=50%}
@@ -242,7 +242,7 @@ These `r dim(dat)[2]` columns are our variables 1-`r dim(dat)[2]`. Our fly measu
 pairs(x = dat, gap = 0, cex.labels = 0.5);
 ```
 
-There is not much that we can infer from this, except that most of the variables appear to be highly correlated. A PCA is therefore likely to be useful. Before building the PCA, it is probably a good idea to scale all of our variables. This would be especially important if we had variables measured in different units. If we scale the variables to have the same mean and standard deviation, then the PCA could potentially be affected by the units in which variables were measured, which does not make sense. If, for example, we had measured thorax length and width in $mm^2$, but abdomen length and width in $cm^{2}$, we would get thorax measurements contributing more to PC1 just because the measured values would be larger (if you do not believe me, try multiplying all values in one column of the data by 10 or 100, then re-run the PCA below). For data sets that include measurements with much different unit scales (e.g., pH versus elevation in metres above sea level), this is especially problematic. I will therefore scale the data below.
+There is not much that we can infer from this, except that most of the variables appear to be highly correlated. A PCA is therefore likely to be useful. Before building the PCA, it is probably a good idea to scale all of our variables. This would be especially important if we had variables measured in different units. If we do not scale the variables to have the same mean and standard deviation, then the PCA could potentially be affected by the units in which variables were measured, which does not make sense. If, for example, we had measured thorax length and width in $mm^2$, but abdomen length and width in $cm^{2}$, then we would get thorax measurements contributing more to PC1 just because the measured values would be larger (if you do not believe me, try multiplying all values in one column of the data by 10 or 100, then re-run the PCA below). For data sets that include measurements with much different unit scales (e.g., pH versus elevation in metres above sea level), this is especially problematic. I will therefore scale the data below.
 
 ```{r}
 dat <- scale(dat);
@@ -261,7 +261,7 @@ print(pca_dat);
 ```
 
 
-If we want to plot the first two principle components, we can do so with the following code.
+If we want to plot the first two principle components, we can do so with the following code. Note that `pca_dat$x` is a matrix of the same size as our original data set, but with values that plot the data on the PC axes.
 
 ```{r}
 par(mar = c(5, 5, 1, 1));
@@ -269,7 +269,7 @@ plot(x = pca_dat$x[,1], y = pca_dat$x[,2], asp = 1, cex.lab = 1.25,
      cex.axis = 1.25, xlab = "PC1", ylab = "PC2");
 ```
 
-Ignore the arguments that start with `cex`; these are just plotting preferences. But the argument `asp = 1` is important; it ensures that one unit along the x-axis is the same distance as one unit along the y-axis. If this were not set, then the distance between any two points might be misleading. If, for example, moving 100 pixels on the x-axis correponsded to one unit on PC1, but moving 100 pixels on the y-axis corresponded to two units in PC2, then the variation in PC1 would look larger relative to PC2 than it should.
+Ignore the arguments that start with `cex`; these are just plotting preferences. But the argument `asp = 1` is important; it ensures that one unit along the x-axis is the same distance as one unit along the y-axis. If this were not set, then the distance between any two points might be misleading. If, for example, moving 100 pixels on the x-axis corresponded to one unit on PC1, but moving 100 pixels on the y-axis corresponded to two units in PC2, then the variation in PC1 would look larger relative to PC2 than it should.
 
 Note that we are not at all restricted to comparing PC1 and PC2. We can look at any of the `r dim(pca_dat$x)[2]` PCs that we want. Below compares PC1 with PC3.
 
@@ -336,9 +336,9 @@ We can also look at a biplot (i.e., a loading plot). The biplot below shows the 
 biplot(pca_dat, cex = 0.8, asp = 1);
 ```
 
-The direction of the red arrows shows the relationships among the `r dim(pca_dat$x)[2]` different variables. Intuitively, variables with arrows pointing in similar directions are positively correlated, while those pointing in opposite directions are negatively correlated (more technically, the cosine of the angle between arrows, in radians, actually equals the correlation between them; e.g., cos(0) = `r cos(0)` and cos($\pi$) = `r cos(pi)`; recall that $\pi$ radians equals 180 degrees). In the above example, wasp head width and thorax width are highly correlated because the two arrows are pointing in very similar directions. In contrast, ovipositor length and ovipositor width appear to be pointing in very different directions, implying that the two are pointing in different directions on PC1 and PC2.
+The direction of the red arrows shows the relationships among the `r dim(pca_dat$x)[2]` different variables. Intuitively, variables with arrows pointing in similar directions are positively correlated, while those pointing in opposite directions are negatively correlated (more technically, the cosine of the angle between arrows, in radians, actually equals the correlation between them; e.g., cos(0) = `r cos(0)` and cos($\pi$) = `r cos(pi)`; recall that $\pi$ radians equals 180 degrees). In the above example, wasp head width and thorax width are highly correlated because the two arrows are pointing in very similar directions. In contrast, ovipositor length and ovipositor width appear to be pointing in very different directions on PC1 and PC2, suggesting that the two variables are negatively correlated.
 
-The direction of these arrows is determined by the loading of each variable on PC1 and PC2. The loading is the value that you would need to multiply each variable to get the score of a data point on the principal component. The loadings can be found in the `pca_dat` results as `pca_dat$rotation`. I will just show the loadings for the first two principle components below.
+The direction of these arrows is determined by the loading of each variable on PC1 and PC2. The loading is the value that you would need to multiply each variable by to get the score of a data point on the principal component. The loadings can be found in the `pca_dat` results as `pca_dat$rotation`. I will just show the loadings for the first two principle components below.
 
 ```{r}
 print(pca_dat$rotation[,1:2]); # Note: 11 total columns; one for each PC
@@ -422,13 +422,13 @@ V <- cov(eg_m); # Variance covariance matrix of two simulated measurements
 print(V);
 ```
 
-Note that the matrix is [symmetric](https://en.wikipedia.org/wiki/Symmetric_matrix), meaning that the $\textbf{V}$ equals its own transpose (i.e., we can swap the elements in row $i$ column $j$ for the elements in row $j$ column $i$ and get the same matrix). What we need now are the eigenvalues and eigenvectors of $\textbf{V}$. As an aside, R will calculate these with the function `eigen`, which I will do below.
+Note that the matrix is [symmetric](https://en.wikipedia.org/wiki/Symmetric_matrix), meaning that the $\textbf{V}$ equals its own transpose (i.e., we can swap the elements in row $i$ column $j$ for the elements in row $j$ column $i$ and get the same matrix). What we need now are the eigenvalues and eigenvectors of $\textbf{V}$. R will calculate these with the function `eigen`, which I will do below.
 
 ```{r}
 eigen(V); # Eigenvalues and eigenvectors of V
 ```
 
-Notice that the eigenvectors are identical to the loadings from our `prcomp(eg_m)` above. This is because our principle components are just the eigenvectors of the covariance matrix. Similarly, the eigenvalues printed above are just the variances of the standard deviations output from `prcomp(eg_m)`. If we take the square root of them, we get the standard devations back.
+Notice that the eigenvectors are identical to the loadings from our `prcomp(eg_m)` above. This is because our principle components are just the eigenvectors of the covariance matrix. Similarly, the eigenvalues printed above are just the variances of each principal component, equal to the standard deviations output from `prcomp(eg_m)` squared. If we take the square root of them, we get the standard devations back.
 
 What are eigenvectors and eigenvalues, really? I will try to explain without being too formal with the mathematics. First, a very quick review of vectors. We can imagine a vector $\textbf{x}$ as an arrow pointing to some point in multidimensional space, and represented by a list of numbers that indicate how far from the origin it points in each dimension. For a really simple example, we can take the vector $\textbf{x} = (2, 1)$, and visualise it on a plane.
 
