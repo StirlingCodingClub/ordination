@@ -409,10 +409,10 @@ prcomp(eg_m);
 Here is our starting point, with standard deviations and loadings for each PC that we know are correct. Now we can attempt to do this whole analysis manually, without the `prcomp` function. To start, we need to get the covariance matrix of the data. A covariance matrix is just a square matrix in which off-diagonal elements hold the covariance between variable $X_{i}$ and $X_{j}$ in row $i$ and column $j$. Diagonal elements (upper left to lower right) hold the variance of variable $X_{i}$ (i.e., the covariance between $X_{i}$ and itself, where $i$ is both the row and column),
 
 $$
-V = \begin{pmatrix}
+V = \begin{bmatrix}
   Var(X_{1}), & Cov(X_{1}, X_{2}) \\
   Cov(X_{2}, X_{1}), & Var(X_{2}) \\
-\end{pmatrix}.
+\end{bmatrix}.
 $$
 
 [Covariance](https://en.wikipedia.org/wiki/Covariance) and [variance](https://en.wikipedia.org/wiki/Variance) are calculated as usual. In R, we can easily get the covariance matrix using the `cov` function.
@@ -453,24 +453,18 @@ Vx <- V %*% x;
 ```
 
 $$
-\begin{equation}
-\left[
-\begin{array}
-  ,`r round(V[1, 1], digits = 2)`, & `r round(V[1, 2], digits = 2)` \\
+\begin{bmatrix}
+  `r round(V[1, 1], digits = 2)`, & `r round(V[1, 2], digits = 2)` \\
   `r round(V[2, 1], digits = 2)`, & `r round(V[2, 2], digits = 2)`
-\end{array}
-\right] \left[
-\begin{array}
-  ,2 \\
+\end{bmatrix}
+\begin{bmatrix}
+  2 \\
   1
-\end{array}
-\right] = \left[
-\begin{array}
-  ,`r round(Vx[1], digits = 2)` \\
+\end{bmatrix} = 
+\begin{bmatrix}
+  `r round(Vx[1], digits = 2)` \\
   `r round(Vx[2], digits = 2)`
-\end{array}
-\right]
-\end{equation}
+\end{bmatrix}
 $$
 
 We can confirm this the long way by getting the first element of the product, $(`r round(V[1, 1], digits = 2)` \times 2) + (`r round(V[2, 1], digits = 2)` \times 1) =$ `r round(V[1, 1], digits = 2) * 2 + round(V[2, 1], digits = 2) * 1`. Likewise, we get the second element,  $(`r round(V[2, 1], digits = 2)` \times 2) + (`r round(V[2, 2], digits = 2)` \times 1) =$ `r round(V[2, 1], digits = 2) * 2 + round(V[2, 2], digits = 2) * 1`. Now, note that if we take our covariance matrix $\textbf{V}$ and multiply it by one of our eigenvectors calculated with `eigen` above ($\textbf{Vu}$), we get the same answer as if we mutliplied our single eigenvalue by the eigenvector,
@@ -478,24 +472,18 @@ We can confirm this the long way by getting the first element of the product, $(
 
 
 $$
-\begin{equation}
-\left[
-\begin{array}
-  ,`r round(V[1, 1], digits = 2)`, & `r round(V[1, 2], digits = 2)` \\
+\begin{bmatrix}
+  `r round(V[1, 1], digits = 2)`, & `r round(V[1, 2], digits = 2)` \\
   `r round(V[2, 1], digits = 2)`, & `r round(V[2, 2], digits = 2)`
-\end{array}
-\right] \left[
-\begin{array}
-  ,`r round(eigen(V)$vectors[1, 1], digits = 2)` \\
+\end{bmatrix} 
+\begin{bmatrix}
+  `r round(eigen(V)$vectors[1, 1], digits = 2)` \\
   `r round(eigen(V)$vectors[2, 1], digits = 2)`
-\end{array}
-\right] = `r round(eigen(V)$values[1], digits = 2)` \left[
-\begin{array}
-  ,`r round(eigen(V)$vectors[1, 1], digits = 2)` \\
+\end{bmatrix} = `r round(eigen(V)$values[1], digits = 2)`
+\begin{bmatrix}
+  `r round(eigen(V)$vectors[1, 1], digits = 2)` \\
   `r round(eigen(V)$vectors[2, 1], digits = 2)`
-\end{array}
-\right]
-\end{equation}
+\end{bmatrix}
 $$
 
 Try confirming for yourself that the two sides of this equation are in fact equal (note that for the right side, you just multiply the scalar `r round(eigen(V)$values[1], digits = 2)` to each element as normal, so the first element in the product vector would be (`r round(eigen(V)$values[1], digits = 2)` $\times$ `r round(eigen(V)$vectors[1, 1], digits = 2)`) = `r round(eigen(V)$values[1], digits = 2) * round(eigen(V)$vectors[1, 1], digits = 2)`. Mathematically, multiplying the covariance matrix by one of its eigenvectors changes the size of that vector (but, critically, *not* its direction) by the same amount as multiplying it by its corresponding eigenvalue. The eigenvector associated with the leading eigenvalue (i.e., the largest eigenvalue) is therefore the direction along which most of the total variation lies in multidimensional space (PC1), and the eigenvalue itself is the variance in this direction.
@@ -527,24 +515,19 @@ U %*% U_inv; # Identity matrix, with a bit of a rounding error.
 Mathematically, here is what that looks like.
 
 $$
-\begin{equation}
-\left[
-\begin{array}
-  ,1, & 0 \\
+\begin{bmatrix}
+  1, & 0 \\
   0, & 1
-\end{array}
-\right] =  \left[
-\begin{array}
-  ,`r round(U[1, 1], digits = 2)`, & `r round(U[1, 2], digits = 2)` \\
-  `r round(U[2, 1], digits = 2)`, & `r round(U[2, 2], digits = 2)`  \\
-\end{array}
-\right] \left[
-\begin{array}
-  ,`r round(U_inv[1, 1], digits = 2)`, & `r round(U_inv[1, 2], digits = 2)` \\
-  `r round(U_inv[2, 1], digits = 2)`, & `r round(U_inv[2, 2], digits = 2)`  \\
-\end{array}
-\right]
-\end{equation}
+\end{bmatrix}
+ =  
+\begin{bmatrix}
+  `r round(U[1, 1], digits = 2)`, & `r round(U[1, 2], digits = 2)` \\
+  `r round(U[2, 1], digits = 2)`, & `r round(U[2, 2], digits = 2)` 
+\end{bmatrix} 
+\begin{bmatrix}
+  `r round(U_inv[1, 1], digits = 2)`, & `r round(U_inv[1, 2], digits = 2)` \\
+  `r round(U_inv[2, 1], digits = 2)`, & `r round(U_inv[2, 2], digits = 2)`
+\end{bmatrix} 
 $$
 
 Hence, the inverse of a matrix is the scalar equivalent of $1 = x(1/x)$. We just have a value of one in each dimension. Putting this all together, we can get back to our original covariance matrix by inserting our eigenvalues into the right side of the equation.
@@ -556,29 +539,22 @@ L[2, 2] <- eigen(V)$values[2];
 ```
 
 $$
-\begin{equation}
-\left[
-\begin{array}
-  ,`r round(V[1, 1], digits = 2)`, & `r round(V[1, 2], digits = 2)` \\
+\begin{bmatrix}
+  `r round(V[1, 1], digits = 2)`, & `r round(V[1, 2], digits = 2)` \\
   `r round(V[2, 1], digits = 2)`, & `r round(V[2, 2], digits = 2)`  
-\end{array}
-\right] =  \left[
-\begin{array}
-  ,`r round(U[1, 1], digits = 2)`, & `r round(U[1, 2], digits = 2)` \\
+\end{bmatrix}
+\begin{bmatrix}
+  `r round(U[1, 1], digits = 2)`, & `r round(U[1, 2], digits = 2)` \\
   `r round(U[2, 1], digits = 2)`, & `r round(U[2, 2], digits = 2)`  
-\end{array}
-\right]\left[
-\begin{array}
-  ,`r round(L[1, 1], digits = 2)`, & `r round(L[1, 2], digits = 2)` \\
+\end{bmatrix} 
+\begin{bmatrix}
+  `r round(L[1, 1], digits = 2)`, & `r round(L[1, 2], digits = 2)` \\
   `r round(L[2, 1], digits = 2)`, & `r round(L[2, 2], digits = 2)`  
-\end{array}
-\right]\left[
-\begin{array}
-  ,`r round(U_inv[1, 1], digits = 2)`, & `r round(U_inv[1, 2], digits = 2)` \\
+\end{bmatrix} 
+\begin{bmatrix}
+  `r round(U_inv[1, 1], digits = 2)`, & `r round(U_inv[1, 2], digits = 2)` \\
   `r round(U_inv[2, 1], digits = 2)`, & `r round(U_inv[2, 2], digits = 2)`  
-\end{array}
-\right]
-\end{equation}
+\end{bmatrix}
 $$
 
 We can confirm all of this in R using our matrices `V`, `U`, and `U_inv`, and creating a new square diagonal matrix holiding the eigenvalues, `L`.
