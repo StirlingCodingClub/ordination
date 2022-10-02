@@ -1,11 +1,11 @@
 ---
 title: "Introduction to ordination (PCA) in R"
 author: "Brad Duthie"
-date: "22 July 2020"
+date: "02 October 2022"
 output:
-  pdf_document: default
   html_document:
     code_folding: show
+  pdf_document: default
   word_document: default
 bibliography: refs.bib
 link-citations: yes
